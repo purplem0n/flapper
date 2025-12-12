@@ -1,0 +1,43 @@
+---
+alwaysApply: true
+---
+
+# Widget File Size and Organization
+
+## File Size Limits
+
+- **Soft Limit**: Widget files should not exceed 500 lines of code
+- When a widget file approaches or exceeds this limit, it should be split into multiple smaller widget files
+- This limit applies to all widget files, including feature pages and custom widgets
+
+## Widget File Organization
+
+### Feature Widgets
+- Feature-specific widgets must be placed in: `lib/features/{feature_name}/widgets/*.dart`
+- Each widget should be in its own file when it exceeds ~100-150 lines
+- Complex widgets with multiple sub-components should be split into separate files
+- Widget files should be named descriptively based on their purpose (e.g., `user_profile_card.dart`, `product_list_item.dart`)
+
+### Splitting Guidelines
+- Extract reusable sub-widgets into separate files
+- Extract complex build methods into separate widget classes
+- Keep related widgets together, but split when files grow too large
+- Each widget file should have a single, clear responsibility
+
+### Example Structure
+```
+lib/features/user_profile/
+├── widgets/
+│   ├── user_profile_header.dart      (~150 lines)
+│   ├── user_profile_stats.dart       (~100 lines)
+│   ├── user_profile_actions.dart      (~80 lines)
+│   └── user_profile_settings.dart    (~200 lines)
+└── user_profile_page.dart            (~300 lines)
+```
+
+## Best Practices
+
+1. **Proactive Splitting**: Don't wait until a file reaches 500 lines. Split widgets early when they become complex
+2. **Logical Grouping**: Group related widgets in the same file if they're small and tightly coupled
+3. **Naming**: Use descriptive names that indicate the widget's purpose
+4. **Single Responsibility**: Each widget file should represent a single UI component or a small group of closely related components

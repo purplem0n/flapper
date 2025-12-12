@@ -1,0 +1,21 @@
+# flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icon/android_icon.png"
+  image_path_ios: "assets/icon/ios_icon.png"
+
+  android: "launcher_icon"
+  image_path_android: "assets/icon/android_icon.png"
+  min_sdk_android: 23
+
+  ios: true
+  remove_alpha_channel_ios: true
+
+  web:
+    generate: true
+    image_path: "assets/icon/small.png"
+
+  windows:
+    generate: true
+
+  macos:
+    generate: true

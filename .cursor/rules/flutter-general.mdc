@@ -1,0 +1,21 @@
+---
+alwaysApply: true
+---
+
+Flutter feature structure goes like this:
+- lib/features/chat/ -> example of a Chat feature
+- lib/features/chat/models/ -> dart data class goes in this folder
+- lib/features/chat/data -> network repository layer goes here - AVOID ABSTRACT CLASSES. IT'S JUST UNNECESSARY LAYER
+- lib/features/chat/widgets/ -> widget components in the feature goes here
+- lib/features/chat/bloc -> the core bloc folder of the feature. contains bloc, state and event classes.
+- NEVER CREATE NEW bloc file
+- NEVER CREATE NEW repository file
+
+Theming
+- NEVER USE HARDCODED COLORS
+- NEVER USE withOpacity it's deprecated
+- only use color schemes from theme context
+- primary, success, warn, error are all available as in the color scheme
+
+General
+- NEVER CALL WidgetsBinding.instance.addPostFrameCallback inside build or builder methods

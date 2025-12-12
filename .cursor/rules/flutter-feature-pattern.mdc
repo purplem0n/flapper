@@ -1,0 +1,234 @@
+---
+alwaysApply: true
+---
+
+# Flutter Feature Structure Pattern
+
+This codebase follows a consistent feature-based architecture pattern. All features should follow the structure defined in `lib/features/template`.
+
+## Directory Structure
+
+Each feature must have the following directory structure:
+
+```
+lib/features/{feature_name}/
+├── bloc/
+│   ├── {feature}_bloc.dart
+│   ├── {feature}_event.dart
+│   ├── {feature}_ext.dart
+│   └── {feature}_state.dart
+├── data/
+│   └── {feature}_repository.dart
+├── models/
+│   └── (feature-specific models)
+├── widgets/
+│   └── (feature-specific widgets)
+├── {feature}_page.dart
+└── index.dart
+```
+
+## File Organization
+
+### 1. `index.dart` (Barrel Export)
+- Must export all public files from the feature
+- Export order: bloc files, data, models, page, widgets
+- Example:
+```dart
+export 'bloc/template_bloc.dart';
+export 'bloc/template_event.dart';
+export 'bloc/template_ext.dart';
+export 'bloc/template_state.dart';
+export 'data/template_repository.dart';
+export 'models/sample_model.dart';
+export 'template_page.dart';
+export 'widgets/sample_widget.dart';
+```
+
+### 2. BLoC Pattern Files
+
+#### `{feature}_bloc.dart`
+- Extends `Bloc<FeatureEvent, FeatureState>`
+- Takes repository as constructor parameter
+- Registers event handlers in constructor
+- Uses try-catch for error handling
+- Uses `Ephemeral` state transitions: `toLoading()`, `toSuccess()`, `toError()`
+- Example pattern:
+```dart
+FutureOr<void> _onEvent(Event event, Emitter<State> emit) async {
+  try {
+    emit(state.copyWith(field: state.field.toLoading()));
+    final result = await repository.method();
+    emit(state.copyWith(field: state.field.toSuccess(result)));
+  } catch (e) {
+    emit(state.copyWith(field: state.field.toError(null, e)));
+  }
+}
+```
+
+#### `{feature}_event.dart`
+- Abstract base class `FeatureEvent` with `const FeatureEvent()`
+- All events extend the base class
+- Events are immutable with `const` constructors
+- Example:
+```dart
+abstract class TemplateEvent {
+  const TemplateEvent();
+}
+
+class IncrementEvent extends TemplateEvent {
+  const IncrementEvent();
+}
+```
+
+#### `{feature}_state.dart`
+- Extends `Equatable`
+- Uses `Ephemeral<T>` for async state values
+- Initial values use `const InitialValue<T>(defaultValue)`
+- Must implement `copyWith` method
+- Example:
+```dart
+class TemplateState extends Equatable {
+  final Ephemeral<int> counter;
+
+  const TemplateState({
+    this.counter = const InitialValue(0),
+  });
+
+  @override
+  List<Object> get props => [counter];
+
+  TemplateState copyWith({
+    Ephemeral<int>? counter,
+  }) {
+    return TemplateState(
+      counter: counter ?? this.counter,
+    );
+  }
+}
+```
+
+#### `{feature}_ext.dart`
+- Extension on `BuildContext` for easier bloc/state access
+- Provides getters: `{feature}Bloc`, `{feature}State`
+- Provides method: `add{Feature}Event(FeatureEvent event)`
+- Example:
+```dart
+extension TemplateExt on BuildContext {
+  TemplateBloc get templateBloc => read<TemplateBloc>();
+  TemplateState get templateState => templateBloc.state;
+  void addTemplateEvent(TemplateEvent event) {
+    templateBloc.add(event);
+  }
+}
+```
+
+### 3. `data/{feature}_repository.dart`
+- Contains business logic and data operations
+- Methods return `Future<T>`
+- Throws exceptions for errors (handled by bloc)
+- No UI dependencies
+
+### 4. `{feature}_page.dart`
+- Main page widget (StatefulWidget)
+- Initializes bloc as `late final` in state class
+- Creates `BlocListenerHelper` for automatic error handling
+- Uses `BlocProvider` to provide bloc
+- Uses `MultiBlocListener` with `BlocListenerHelper` for Ephemeral value error handling
+- Uses `BuildWhen` for selective rebuilds based on state changes
+- Imports from feature's `index.dart` for internal imports
+- Imports from root `l10n`, `theme`, `utils`, `widgets` for shared resources
+
+Example structure:
+```dart
+class _TemplatePageState extends State<TemplatePage> {
+  late final bloc = TemplateBloc(context.read<TemplateRepository>());
+  late final templateListener = const BlocListenerHelper<TemplateBloc, TemplateState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => bloc,
+      child: MultiBlocListener(
+        listeners: [
+          templateListener((state) => state.counter), // auto error toast
+        ],
+        child: Scaffold(...),
+      ),
+    );
+  }
+}
+```
+
+### 5. `models/` Directory
+- Contains data models specific to the feature
+- Models extend `Equatable`
+- Include `toMap()`, `fromMap()`, `toJson()`, `fromJson()` methods
+- Use `props` getter for equality comparison
+
+### 6. `widgets/` Directory
+- Contains feature-specific widgets
+- Should be reusable within the feature
+- Use `StatelessWidget` or `StatefulWidget` as appropriate
+
+## State Management Patterns
+
+### Ephemeral Values
+- Use `Ephemeral<T>` from `ephemeral_value` package for async state
+- States: `InitialValue<T>`, `LoadingValue<T>`, `SuccessValue<T>`, `ErrorValue<T>`
+- Transition methods: `toLoading()`, `toSuccess(value)`, `toError(oldValue, error)`
+- Access value: `ephemeral.value` (nullable)
+- Check state: `ephemeral.isLoading`, `ephemeral.isSuccess`, `ephemeral.isError`
+
+### Error Handling
+- Errors are automatically displayed as toasts via `BlocListenerHelper`
+- Bloc catches exceptions and converts to `ErrorValue`
+- Use `BlocListenerHelper` in `MultiBlocListener` for automatic error handling
+- Example:
+```dart
+templateListener((state) => state.counter) // automatically shows error toast
+```
+
+### Selective Rebuilds
+- Use `BuildWhen` widget for performance optimization
+- Filter by specific state fields to avoid unnecessary rebuilds
+- Example:
+```dart
+BuildWhen<TemplateBloc, TemplateState>(
+  filter: (state) => state.counter,
+  builder: (context, state) {
+    // Only rebuilds when counter changes
+  },
+)
+```
+
+## Naming Conventions
+
+- **Feature name**: lowercase, singular (e.g., `template`, `counter`, `user`)
+- **Files**: `{feature}_{type}.dart` (e.g., `template_bloc.dart`, `template_page.dart`)
+- **Classes**: PascalCase with feature name prefix (e.g., `TemplateBloc`, `TemplateState`)
+- **Extension**: `{Feature}Ext` (e.g., `TemplateExt`)
+- **Extension getters**: camelCase `{feature}Bloc`, `{feature}State`
+- **Extension methods**: `add{Feature}Event` (e.g., `addTemplateEvent`)
+
+## Import Patterns
+
+### Internal Feature Imports
+- Import from feature's `index.dart`: `import 'index.dart';`
+- Use relative imports within feature
+
+### External Imports
+- Import shared resources from root:
+  - `import '../../l10n/l10n.dart';`
+  - `import '../../theme/index.dart';`
+  - `import '../../utils/index.dart';`
+  - `import '../../widgets/index.dart';`
+
+## Best Practices
+
+1. **Repository Injection**: Repository should be provided via dependency injection (e.g., `context.read<Repository>()`)
+2. **Immutable State**: Always use `copyWith` to update state, never mutate directly
+3. **Error Handling**: Let `BlocListenerHelper` handle error toasts automatically
+4. **Loading States**: Use `Ephemeral` loading states to disable buttons/actions during async operations
+5. **Selective Rebuilds**: Use `BuildWhen` to optimize performance
+6. **Extension Usage**: Prefer extension methods over `context.read<Bloc>()` for cleaner code
+7. **Const Constructors**: Use `const` constructors for events and widgets where possible
