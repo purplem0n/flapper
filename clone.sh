@@ -43,7 +43,7 @@ fi
 
 echo "Running setup (package ID, app name, icons, etc.)..."
 chmod +x setup.sh
-./setup.sh
+./setup.sh "$TARGET_DIR"
 
 echo ""
 echo "Done. Your app is in: $(pwd)"

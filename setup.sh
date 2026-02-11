@@ -19,13 +19,29 @@ prompt_if_empty() {
 }
 
 # Get package ID, app name, and proper name from arguments or prompt
+# When run from clone.sh with one arg (target dir), that is used as app name when non-interactive.
 PACKAGE_ID=${1:-""}
 APP_NAME=${2:-""}
 PROPER_NAME=${3:-""}
 
-PACKAGE_ID=$(prompt_if_empty PACKAGE_ID "Enter package ID (e.g., com.yourcompany.yourapp)")
-APP_NAME=$(prompt_if_empty APP_NAME "Enter app name (e.g., yourapp)")
-PROPER_NAME=$(prompt_if_empty PROPER_NAME "Enter proper name (e.g., MyApp)")
+# When stdin is not a TTY (e.g. curl ... | bash), do not read from stdin — it's the script.
+# Use args or derive from the single arg (clone passes target dir as $1) so we don't corrupt pubspec.
+if [[ ! -t 0 ]]; then
+    if [[ -n "$1" && -z "$2" ]]; then
+        # Single arg from clone.sh = target dir = app name
+        APP_NAME="$1"
+        PACKAGE_ID="com.example.${APP_NAME}"
+        PROPER_NAME="$(echo "${APP_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${APP_NAME:1}"
+    else
+        APP_NAME=${APP_NAME:-flapper}
+        PACKAGE_ID=${PACKAGE_ID:-com.example.${APP_NAME}}
+        PROPER_NAME=${PROPER_NAME:-$(echo "${APP_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${APP_NAME:1}}
+    fi
+else
+    PACKAGE_ID=$(prompt_if_empty PACKAGE_ID "Enter package ID (e.g., com.yourcompany.yourapp)")
+    APP_NAME=$(prompt_if_empty APP_NAME "Enter app name (e.g., yourapp)")
+    PROPER_NAME=$(prompt_if_empty PROPER_NAME "Enter proper name (e.g., MyApp)")
+fi
 
 # Escape special characters for sed
 ESCAPED_PACKAGE_ID=$(escape_sed "$PACKAGE_ID")
