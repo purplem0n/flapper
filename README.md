@@ -6,16 +6,16 @@ A flutter project template with supporting utility scripts.
 Clone the template, remove git history, and run setup in one go:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/flapper/main/clone.sh | bash
+curl -fsSL https://raw.githubusercontent.com/purplem0n/flapper/main/clone.sh | bash
 ```
 
 This clones into `flapper/`. To use a different directory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USER/flapper/main/clone.sh | bash -s my-app-name
+curl -fsSL https://raw.githubusercontent.com/purplem0n/flapper/main/clone.sh | bash -s my-app-name
 ```
 
-Replace `YOUR_USER/flapper` with your repo URL. The script will clone, delete `.git`, then run `setup.sh` (package ID, app name, icons, splash).
+The script will clone, delete `.git`, then run `setup.sh` (package ID, app name, icons, splash).
 
 ## Setup
 
