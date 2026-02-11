@@ -5,7 +5,7 @@ escape_sed() {
     echo "$1" | sed 's/[\/&]/\\&/g'
 }
 
-# Function to prompt for input if not provided
+# Function to prompt for input if not provided (reads from stdin)
 prompt_if_empty() {
     local var_name=$1
     local prompt_text=$2
@@ -18,17 +18,32 @@ prompt_if_empty() {
     echo "$var_value"
 }
 
+# Prompt reading from /dev/tty (for when stdin is the curl pipe but user is at a terminal)
+prompt_from_tty() {
+    local prompt_text=$1
+    local default_val=${2:-}
+    read -p "$prompt_text: " var_value < /dev/tty
+    echo "${var_value:-$default_val}"
+}
+
 # Get package ID, app name, and proper name from arguments or prompt
-# When run from clone.sh with one arg (target dir), that is used as app name when non-interactive.
+# When run from clone.sh with one arg (target dir), that is the default app name.
 PACKAGE_ID=${1:-""}
 APP_NAME=${2:-""}
 PROPER_NAME=${3:-""}
 
 # When stdin is not a TTY (e.g. curl ... | bash), do not read from stdin — it's the script.
-# Use args or derive from the single arg (clone passes target dir as $1) so we don't corrupt pubspec.
+# If we have one arg and the user is at a terminal (stdout TTY + /dev/tty), prompt via /dev/tty.
+# Otherwise use args/defaults so we don't corrupt pubspec (e.g. in CI).
 if [[ ! -t 0 ]]; then
-    if [[ -n "$1" && -z "$2" ]]; then
-        # Single arg from clone.sh = target dir = app name
+    if [[ -n "$1" && -z "$2" ]] && [[ -t 1 && -e /dev/tty ]]; then
+        # Single arg from clone + terminal: prompt from /dev/tty, use $1 as default app name
+        echo ""
+        PACKAGE_ID=$(prompt_from_tty "Enter package ID (e.g., com.yourcompany.yourapp)" "com.example.$1")
+        APP_NAME=$(prompt_from_tty "Enter app name (e.g., yourapp)" "$1")
+        PROPER_NAME=$(prompt_from_tty "Enter proper name (e.g., MyApp)" "$(echo "${1:0:1}" | tr '[:lower:]' '[:upper:]')${1:1}")
+    elif [[ -n "$1" && -z "$2" ]]; then
+        # Single arg, no terminal (CI): use as app name
         APP_NAME="$1"
         PACKAGE_ID="com.example.${APP_NAME}"
         PROPER_NAME="$(echo "${APP_NAME:0:1}" | tr '[:lower:]' '[:upper:]')${APP_NAME:1}"
