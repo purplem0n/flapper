@@ -2,28 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Flutter (Development)",
+      "name": "Dev Debug",
       "type": "dart",
       "request": "launch",
       "program": "lib/main_development.dart",
       "flutterMode": "debug"
     },
     {
-      "name": "Flutter (Development - Profile)",
+      "name": "Prod Release",
       "type": "dart",
       "request": "launch",
-      "program": "lib/main_development.dart",
-      "flutterMode": "profile"
-    },
-    {
-      "name": "Flutter (Development - Release)",
-      "type": "dart",
-      "request": "launch",
-      "program": "lib/main_development.dart",
+      "program": "lib/main_production.dart",
       "flutterMode": "release"
     },
     {
-      "name": "Flutter (Web - Development)",
+      "name": "Web Debug",
       "type": "dart",
       "request": "launch",
       "program": "lib/main_development.dart",

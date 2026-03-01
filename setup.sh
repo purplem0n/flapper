@@ -209,5 +209,11 @@ echo "Running Flutter setup commands..."
 
 flutter clean
 flutter pub get
-dart run flutter_launcher_icons:generate
+dart run flutter_launcher_icons
 dart run flutter_native_splash:create
+
+# Generate Android signing key
+echo ""
+echo "Generating Android signing key..."
+chmod +x sign.sh
+./sign.sh

@@ -102,12 +102,12 @@ extension VisibleOnColor on Color {
 }
 
 // --- Success Color Definition ---
-// Using CorePalette for the 'success' color as it provides the desired result.
-final CorePalette successCorePalette = CorePalette.of(0xFF4CAF50);
+// Using TonalPalette.of for the 'success' color as it provides the desired result.
+final Hct successHct = Hct.fromInt(0xFF4CAF50);
+final TonalPalette successTonalPalette = TonalPalette.of(successHct.hue, successHct.chroma);
 
 // --- Warn Color Definition (Matching Success Vibrancy) ---
 // 1. Get the chroma (vibrancy) from the successful green implementation.
-final Hct successHct = Hct.fromInt(0xFF4CAF50);
 final double successChroma = successHct.chroma;
 
 // 2. Get the hue from your desired 'warn' color.
@@ -121,11 +121,11 @@ final TonalPalette warnTonalPalette = TonalPalette.of(warnHue, successChroma);
 extension CustomColors on ColorScheme {
   bool get isDark => brightness == Brightness.dark;
 
-  // Success colors from CorePalette
-  Color get success => Color(successCorePalette.primary.get(isDark ? 80 : 40));
-  Color get onSuccess => Color(successCorePalette.primary.get(isDark ? 20 : 100));
-  Color get successContainer => Color(successCorePalette.primary.get(isDark ? 30 : 90));
-  Color get onSuccessContainer => Color(successCorePalette.primary.get(isDark ? 90 : 10));
+  // Success colors from TonalPalette
+  Color get success => Color(successTonalPalette.get(isDark ? 80 : 40));
+  Color get onSuccess => Color(successTonalPalette.get(isDark ? 20 : 100));
+  Color get successContainer => Color(successTonalPalette.get(isDark ? 30 : 90));
+  Color get onSuccessContainer => Color(successTonalPalette.get(isDark ? 90 : 10));
 
   // Warn colors from the custom, vibrant TonalPalette
   Color get warn => Color(warnTonalPalette.get(isDark ? 80 : 40));
