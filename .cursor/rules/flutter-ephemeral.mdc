@@ -4,6 +4,14 @@ alwaysApply: true
 
 ALWAYS USE ephemeral_value library for bloc state fields
 
+## Hard requirements
+
+1. **`Ephemeral<void>` and `.toSuccess()`** — Calling `.toSuccess()` with no argument supplies a null payload internally; the library throws (for example: *SuccessValue cannot be created with null value*). Always capture the completion of the `Future<void>` and pass it through: `final result = await repository.save(); … state.field.toSuccess(result)`.
+
+2. **`SuccessValue` / `.toSuccess` and null** — Never use **null** as the success payload. Dart may still compile `toSuccess(null)` when `T` is nullable, but at runtime this can throw when transitioning to success—especially on a first-ever success where both the previous ephemeral value and the new success value would be null.
+
+3. **`Ephemeral<T>` state fields — non-nullable `T` only** — Do **not** declare bloc state fields as `Ephemeral<User?>`, `Ephemeral<String?>`, etc. Keep success types non-nullable (`Ephemeral<User>`, `Ephemeral<String>`). Represent “nothing yet” or “empty” with `NoneValue`, `LoadingValue`, `EmptyValue`, or a dedicated sentinel model—not nullable success values.
+
 ## 🧩 Usage
 
 ### Basic State Types
@@ -94,7 +102,7 @@ Abstract base class for all ephemeral value types.
 - `toNone([T? value])` - Transition to `NoneValue`
 - `toInitial([T? value, String? message])` - Transition to `InitialValue`
 - `toLoading([T? value, String? message])` - Transition to `LoadingValue`
-- `toSuccess([T? value, String? message])` - Transition to `SuccessValue`
+- `toSuccess([T? value, String? message])` - Transition to `SuccessValue` (**never pass null for `value`**; for `Ephemeral<void>`, pass the `await` result of `Future<void>`—see **Hard requirements** above)
 - `toError([T? value, Object? error])` - Transition to `ErrorValue`
 - `toEmpty([T? value, String? message])` - Transition to `EmptyValue`
 - `toRefreshing([T? value, String? message])` - Transition to `RefreshingValue`
@@ -130,7 +138,7 @@ const LoadingValue(user, "Loading...")     // With value and message
 
 #### `SuccessValue<T>`
 
-Represents a successfully loaded value.
+Represents a successfully loaded value. The stored payload must be non-null in practice (`T` should be non-nullable on state fields); see **Hard requirements** above.
 
 ```dart
 const SuccessValue(user)                    // With value only
