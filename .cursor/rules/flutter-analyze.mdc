@@ -1,0 +1,36 @@
+---
+description: How to run Flutter/Dart analysis in this app
+alwaysApply: true
+---
+
+# Flutter Analyze
+
+Do **not** use the `user-dart` MCP `analyze_files` tool. It hangs with no output when called with `roots` / `paths` and blocks the session.
+
+Use the Shell tool instead:
+
+```bash
+# Full project
+flutter analyze
+
+# Specific files or directories
+flutter analyze lib/features/anime/widgets/anime_details_streams.dart
+flutter analyze lib/features/anime/
+```
+
+`dart analyze` with the same paths is also fine when you only need static analysis.
+
+## Wrong (do not use)
+
+```
+CallMcpTool → user-dart → analyze_files
+{
+  "roots": [{ "root": "file:///.../apps/mobile", "paths": ["lib/..."] }]
+}
+```
+
+## Right
+
+```bash
+cd apps/mobile && flutter analyze lib/features/anime/
+```
